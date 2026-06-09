@@ -2,7 +2,7 @@
 
 ![Python](https://img.shields.io/badge/Python-3.10-blue)
 ![LightGBM](https://img.shields.io/badge/Model-LightGBM-green)
-![AUC](https://img.shields.io/badge/AUC-0.6616-orange)
+![AUC](https://img.shields.io/badge/AUC-0.7787-orange)
 ![Version](https://img.shields.io/badge/version-1.0.0-brightgreen)
 
 ## 📌 Problema de ML
@@ -58,7 +58,7 @@ Muestra representativa de datos. Los datos originales contienen 500 mil registro
 
 | Característica | Valor |
 |---|---|
-| Filas | 33580 |
+| Filas | 41976 |
 | Features seleccionadas | 15 |
 | Tasa de incumplimiento | 23.3% |
 | Periodo | 2015 – 2021 |
@@ -144,7 +144,7 @@ Se integró **Groq API (llama3-8b-8192)** para generar explicaciones en lenguaje
 
 ## 💡 Conclusiones
 
-1. **LightGBM supera a la Regresión Logística** en todas las métricas de discriminación (AUC: 0.6616 vs 0.6299), confirmando los resultados de otros papers.
+1. **LightGBM supera a la Regresión Logística** en todas las métricas de discriminación (AUC: 0.7087 vs 0.6844), confirmando los 
 
 2. **Las variables de comportamiento reciente** (atrasos en últimos 6 meses, calificaciones históricas) son más predictivas que las variables macroeconómicas.
 
