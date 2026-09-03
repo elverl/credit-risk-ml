@@ -1,0 +1,19 @@
+{
+  "embedding_model": "local-lsa-tfidf-svd-v1",
+  "requested_dimension": 55,
+  "random_state": 42,
+  "corpus_sha256": "7518c3d45a811c46463fff4d4bd1fbb503fb3a23ef8a8579b1d0c35eaf4e277d",
+  "embedding_dimension": 55,
+  "chunk_count": 56,
+  "similarity": "cosine (dot product over L2-normalized embeddings)",
+  "vectorizer": {
+    "type": "TfidfVectorizer",
+    "ngram_range": [
+      1,
+      2
+    ],
+    "strip_accents": "unicode",
+    "sublinear_tf": true
+  },
+  "projector": "TruncatedSVD"
+}
