@@ -1,216 +1,200 @@
-# 🏦 Credit Risk ML — Predicción de Incumplimiento en Créditos
+# Credit Risk ML — clasificación de incumplimiento
 
-![Python](https://img.shields.io/badge/Python-3.10-blue)
-![LightGBM](https://img.shields.io/badge/Model-LightGBM-green)
-![AUC](https://img.shields.io/badge/AUC-0.7787-orange)
-![Version](https://img.shields.io/badge/version-1.0.0-brightgreen)
+Proyecto reproducible de clasificación binaria de riesgo crediticio con
+benchmark de cuatro modelos, explicabilidad SHAP, generación con GPT-OSS-20B,
+RAG local y tracking en MLflow/DagsHub.
 
-## 📌 Problema de ML
+## Problema y datos
 
-El incumplimiento crediticio es uno de los principales riesgos del sistema financiero. Este proyecto desarrolla un modelo de clasificación binaria para predecir la **probabilidad de incumplimiento** de clientes con créditos de consumo en una entidad
-financiera peruana.
+El target es `incumplimiento`: vale `1` si el cliente alcanza 30 o más días de
+atraso (30+ DPD) dentro de los 12 meses posteriores a la originación y `0` si no
+alcanza ese evento en esa ventana.
 
-| Componente | Detalle |
-|---|---|
-| **Tipo de problema** | Clasificación binaria supervisada |
-| **Target** | `incumplimiento` (1 = incumplió, 0 = cumplió) |
-| **Métrica primaria** | AUC-ROC |
-| **Métricas secundarias** | Gini, KS, Brier Score, Log Loss |
+| Propiedad | Valor validado |
+|---|---:|
+| Filas | 41,976 |
+| Features de modelado | 15 |
+| Train | 33,580 (80%) |
+| Test | 8,396 (20%) |
+| Split | Aleatorio, estratificado, `random_state=42` |
 
----
+La procedencia externa precisa, el muestreo y los criterios de inclusión no
+están documentados. El diccionario completo está en
+[`docs/knowledge_base/data_dictionary.md`](docs/knowledge_base/data_dictionary.md).
 
-## 🔄 Diagrama de flujo del proyecto
+## Arquitectura
 
-```
-Datos raw (df_sample.csv)
-        │
-        ▼
-┌─────────────────────┐
-│  Preprocesamiento   │  → Selección de features, EDA, splits train/test
-└─────────────────────┘
-        │
-        ▼
-┌─────────────────────┐
-│  Entrenamiento ML   │  → Logistic Regression (baseline) + LightGBM
-└─────────────────────┘
-        │
-        ▼
-┌─────────────────────┐
-│   Evaluación        │  → AUC, Gini, KS, Brier Score, Curvas ROC
-└─────────────────────┘
-        │
-        ▼
-┌─────────────────────┐
-│  Explicabilidad     │  → SHAP values + LLM (Groq) en lenguaje natural
-└─────────────────────┘
-        │
-        ▼
-┌─────────────────────┐
-│    Artefactos       │  → .pkl modelos, métricas .csv
-└─────────────────────┘
+```mermaid
+flowchart TD
+    D[Data] --> S[Train / Test]
+    S --> M[LR / RF / XGBoost / LightGBM]
+    M --> C[XGBoost champion]
+    C --> H[SHAP]
+    H --> B[Baseline: GPT-OSS-20B]
+    H --> R[Pipeline RAG]
+    K[Knowledge Base: 9 documentos] --> CH[Chunking semántico: 56 chunks]
+    CH --> RT[Dense retriever Top-3]
+    RT --> R
+    R --> G[GPT-OSS-20B]
+    B --> E[Explicación]
+    G --> E
+    T[MLflow / DagsHub: tracking y evaluación] -.-> M
+    T -.-> B
+    T -.-> R
 ```
 
----
+## Benchmark ML
 
-## 📊 Descripción del Dataset
+Se evaluaron Logistic Regression, Random Forest, XGBoost y LightGBM. Cada
+threshold se seleccionó maximizando Youden J sobre predicciones out-of-fold de
+Train con cinco folds estratificados; Test quedó fuera de la selección del
+threshold. Después se usó Test para comparar candidatos y elegir el champion,
+por lo que no es un holdout externo posterior a esa selección.
 
-Muestra representativa de datos. Los datos originales contienen 500 mil registros y 1,277 variables de créditos de consumo otorgados entre 2015 y 2021.
+| Modelo | Threshold | AUC | Gini | KS | Brier Score | Log Loss |
+|---|---:|---:|---:|---:|---:|---:|
+| Logistic Regression | 0.489574 | 0.684380 | 0.368760 | 0.280937 | 0.222377 | 0.635628 |
+| Random Forest | 0.495716 | 0.700424 | 0.400848 | 0.296462 | 0.218887 | 0.626885 |
+| **XGBoost** | **0.2399873** | **0.706305** | **0.412610** | **0.296907** | **0.158818** | **0.489626** |
+| LightGBM | 0.217257 | 0.694485 | 0.388971 | 0.280056 | 0.161495 | 0.498995 |
 
-| Característica | Valor |
-|---|---|
-| Filas | 41976 |
-| Features seleccionadas | 15 |
-| Tasa de incumplimiento | 23.3% |
-| Periodo | 2015 – 2021 |
-| Fuente | Sistema financiero peruano |
+XGBoost es el champion del score global que pondera por igual discriminación,
+calibración y clasificación. Su global score es `0.916667`.
 
-### Diccionario de datos
+## Explainability y GenAI
 
-| Variable | Descripción |
-|---|---|
-| `n_atr_1d_6` | Número de atrasos mayores a 1 día en los últimos 6 meses |
-| `cl_9_1.0` | 1 si su máxima calificación fue CPP en los últimos 9 meses |
-| `cl_12_1.0` | 1 si su máxima calificación fue CPP en los últimos 12 meses |
-| `cl_18_2.0` | 1 si su máxima calificación fue Deficiente en los últimos 18 meses |
-| `cl_9_3.0` | 1 si su máxima calificación fue Dudoso en los últimos 9 meses |
-| `ind_vjrc_36_1` | 1 si tuvo crédito vencido, refinanciado o castigado en los últimos 36 meses |
-| `ind_per_x9_1.0` | 1 si tenía deuda bancaria personal consecutiva en los últimos 9 meses |
-| `prc_u_tc_cns` | Máximo porcentaje de utilización de tarjetas de crédito de consumo |
-| `tas_u_tc` | Porcentaje de utilización de tarjetas de crédito en el último mes |
-| `c_tc_mn_24` | Cantidad mínima de tarjetas de crédito en los últimos 24 meses |
-| `c_tc_mn_24_sld` | Cantidad mínima de tarjetas con saldo mayor a 0 en los últimos 24 meses |
-| `c_pcns` | Número de créditos de consumo al momento de la evaluación |
-| `vr_s_t_36` | Variación porcentual del saldo de deuda respecto a 36 meses atrás |
-| `mx_ltc_36` | Máximo monto de línea de tarjeta de crédito en los últimos 36 meses |
-| `ipc_t6` | Tasa de inflación anual de hace 6 meses |
-| `incumplimiento` | **TARGET** — 1 si el cliente incumplió, 0 si cumplió |
+SHAP describe cuánto contribuye cada feature al output del XGBoost para una
+observación. Una contribución positiva eleva el output respecto de la referencia
+y una negativa lo reduce. SHAP no demuestra causalidad y la explicación no
+constituye una decisión ni una recomendación crediticia.
 
----
+El provider GenAI es **Groq** y el modelo vigente es
+`openai/gpt-oss-20b`. Se conservan dos variantes comparables:
 
-## 🃏 Model Card
+- **Baseline:** XGBoost + SHAP + GPT-OSS-20B, sin retrieval.
+- **RAG:** el mismo contexto predictivo/SHAP más conocimiento Top-3 y
+  GPT-OSS-20B.
 
-### Logistic Regression (Baseline)
+La capa GenAI explica una predicción ya calculada; no modifica probabilidad,
+clase, threshold ni banda.
 
-| Campo | Detalle |
-|---|---|
-| **Tipo** | Regresión Logística con estandarización |
-| **Propósito** | Baseline del estándar de la industria financiera |
-| **Preprocesamiento** | StandardScaler |
-| **Hiperparámetros** | `max_iter=1000`, `class_weight=balanced` |
-| **Limitaciones** | Solo captura relaciones lineales |
+## RAG V1
 
-### LightGBM (Modelo Principal)
-
-| Campo | Detalle |
-|---|---|
-| **Tipo** | Gradient Boosting sobre árboles de decisión |
-| **Propósito** | Modelo principal de predicción de incumplimiento |
-| **Hiperparámetros** | `n_estimators=200`, `learning_rate=0.05`, `max_depth=6` |
-| **Explicabilidad** | SHAP TreeExplainer + LLM (Groq llama3-8b) |
-| **Limitaciones** | Muestra reducida; modelo entrenado sobre datos históricos 2015-2021 |
-| **Sesgos potenciales** | Refleja el comportamiento del sistema financiero peruano del periodo |
-
----
-
-## 📈 Resultados
-
-### Métricas de evaluación offline
-
-| Métrica | Logistic Regression | LightGBM | Mejor |
-|---|---|---|---|
-| **AUC** | 0.6844 | **0.7087** | LightGBM |
-| **Gini** | 0.3688 | **0.4174** | LightGBM |
-| **KS** | 0.2806 | **0.3029** | LightGBM |
-| **Brier Score** | 0.2224 | **0.2115** | LightGBM |
-| **Log Loss** | 0.6357 | **0.6109** | LightGBM |
-
-### Top 5 variables más importantes (SHAP)
-
-1. `n_atr_1d_6` — Número de atrasos recientes
-2. `ind_vjrc_36_1` — Historial de créditos vencidos/castigados
-3. `prc_u_tc_cns` — Utilización de tarjetas de crédito
-4. `cl_9_3.0` — Calificación Dudoso en historial
-5. `vr_s_t_36` — Variación del endeudamiento
-
----
-
-## 🧠 Integración LLM
-
-Se integró **Groq API (llama3-8b-8192)** para generar explicaciones en lenguaje natural del riesgo crediticio de cada cliente, basadas en sus valores SHAP. Ejemplo de output:
-
-> *"Este cliente presenta un riesgo ALTO de incumplimiento (78%). El principal factor de riesgo es su historial de atrasos frecuentes en los últimos 6 meses, combinado con una alta utilización de sus tarjetas de crédito. Sin embargo, su bajo nivel de endeudamiento total actúa como factor protector..."*
-
----
-
-## 💡 Conclusiones
-
-1. **LightGBM supera a la Regresión Logística** en todas las métricas de discriminación (AUC: 0.7087 vs 0.6844), confirmando los 
-
-2. **Las variables de comportamiento reciente** (atrasos en últimos 6 meses, calificaciones históricas) son más predictivas que las variables macroeconómicas.
-
-3. **La integración de LLMs** permite democratizar el uso del modelo — los analistas de riesgo pueden obtener explicaciones en lenguaje natural sin necesidad de interpretar valores SHAP directamente.
-
-4. **El desbalance de clases** (23.3% incumplimiento) es manejable con `class_weight='balanced'` sin necesidad de técnicas más complejas como SMOTE con esta muestra.
-
----
-
-## 🗂️ Estructura del repositorio
-
-```
-credit-risk-ml/
-├── notebooks/
-│   ├── 01_preprocessing.ipynb    # EDA y preprocesamiento
-│   └── 02_machine_learning.ipynb # ML, SHAP y LLM
-├── data/
-│   ├── df_sample.csv             # Dataset original
-│   ├── X_train.csv               # Features de entrenamiento
-│   ├── X_test.csv                # Features de prueba
-│   ├── y_train.csv               # Target entrenamiento
-│   └── y_test.csv                # Target prueba
-├── artifacts/
-│   ├── lightgbm_model.pkl        # Modelo LightGBM entrenado
-│   ├── logistic_regression.pkl   # Modelo baseline
-│   ├── model_metrics.csv         # Métricas comparativas
-│   └── shap_importance.csv       # Importancia SHAP
-├── pyproject.toml                # Dependencias del proyecto
-├── uv.lock                       # Lock file de dependencias
-├── .gitignore                    # Archivos ignorados
-└── README.md                     # Este archivo
+```text
+Knowledge Base (9 documentos)
+  → chunking semántico determinista (56 chunks)
+  → local-lsa-tfidf-svd-v1
+  → dense retrieval Top-3
+  → GPT-OSS-20B
+  → explicación grounded
 ```
 
----
+| Métrica de retrieval | Resultado |
+|---|---:|
+| Hit Rate@3 | 0.750000 |
+| MRR@3 | 0.597222 |
+| Hits | 18/24 |
 
-## 🔀 Estrategia Git
+El retriever es un baseline denso local y reproducible. Su Hit Rate@3 muestra
+que recuperar evidencia correcta sigue siendo una limitación y una oportunidad
+de mejora; este proyecto no implementa búsqueda híbrida ni reranking.
 
-Se utilizó **GitHub Flow** como estrategia de control de versiones:
+## Evaluación Baseline vs RAG
 
-- `main` — rama de producción, solo recibe merges desde `development`
-- `development` — rama de desarrollo activo
+Los dos sistemas se evaluaron sobre los mismos 24 casos con el mismo modelo,
+contexto predictivo y reglas determinísticas.
 
-**Flujo de trabajo:**
-1. Todo el desarrollo se realiza en la rama `development`
-2. Se documenta cada cambio con commits descriptivos usando prefijos semánticos (`feat:`, `fix:`, `docs:`)
-3. Se crea un Pull Request de `development` → `main` al completar una versión estable
-4. Se etiqueta la versión con un Release (`v1.0.0`)
+| Métrica | Baseline | RAG | Delta |
+|---|---:|---:|---:|
+| Factual correctness | 0.312500 | 0.619444 | +0.306944 |
+| Groundedness | 0.731483 | 0.636900 | -0.094584 |
+| Answer relevance | 0.214051 | 0.510171 | +0.296120 |
+| Abstention accuracy | 0.458333 | 0.958333 | +0.500000 |
+| Integrated prediction consistency | 0.750000 | 0.821429 | +0.071429 |
 
----
+Resultado por caso: **19 mejorados, 5 empatados y 0 empeorados**. Esto no
+demuestra superioridad universal. El scorer de groundedness considera grounded
+una abstención sin afirmaciones, aunque sea poco útil; debe interpretarse junto
+con factual correctness y answer relevance.
 
-## ⚙️ Instalación y ejecución
+### Costo operativo observado
+
+| Variante | Latencia promedio | Tokens totales |
+|---|---:|---:|
+| Baseline | 0.800526 s | 18,352 |
+| RAG | 0.949150 s | 33,212 |
+
+RAG mejoró principalmente factualidad, relevancia y abstención, a cambio de
+aproximadamente `+0.15 s` y `+80.97%` de tokens en esta evaluación.
+
+## MLflow y DagsHub
+
+El proyecto mantiene dos experimentos separados:
+
+- `credit-risk-model-benchmark`: cuatro candidatos ML y champion.
+- `credit-risk-rag-evaluation`: runs `baseline_gpt_oss_20b` y
+  `rag_gpt_oss_20b`.
+
+Los runs GenAI y sus artifacts están validados en el
+[experimento público de DagsHub](https://dagshub.com/elverl/credit-risk-ml.mlflow/#/experiments/1).
+Las credenciales no se almacenan en el repositorio ni en los manifests.
+
+## Reproducibilidad
+
+Requiere Python 3.12 y [`uv`](https://docs.astral.sh/uv/). Desde la raíz:
 
 ```bash
-git clone https://github.com/elverl/credit-risk-ml.git
-cd credit-risk-ml
 uv sync
-uv run jupyter lab
+uv run python scripts/preprocess.py
+uv run python scripts/train.py
+uv run python scripts/build_rag_chunks.py
+uv run python scripts/evaluate_rag_retrieval.py
+uv run python scripts/run_rag_evalset.py
+uv run python scripts/evaluate_rag_baseline_comparison.py
+uv run pytest -q
 ```
 
-Ejecutar los notebooks en orden:
-1. `notebooks/01_preprocessing.ipynb`
-2. `notebooks/02_machine_learning.ipynb`
+Las llamadas remotas requieren que la credencial correspondiente ya esté
+configurada de forma segura en el entorno.
 
----
+## Estructura
 
-## 👤 Autor
+```text
+credit-risk-ml/
+├── data/                       # raw y split procesado
+├── notebooks/                  # preprocessing y análisis ML
+├── src/credit_risk/
+│   └── rag/                    # chunking, retriever, pipeline y evaluación
+├── scripts/                    # entry points reproducibles
+├── docs/
+│   ├── knowledge_base/         # 9 documentos vigentes
+│   └── model_card.md
+├── evaluation/                 # golden evalset de 24 casos
+├── artifacts/
+│   ├── models/                 # modelos persistidos
+│   ├── metrics/                # benchmark, thresholds y SHAP
+│   ├── figures/                # visualizaciones
+│   └── rag/                    # chunks, evaluaciones, respuestas y manifests
+├── tests/
+├── pyproject.toml
+└── uv.lock
+```
 
-**Elver Zúñiga**
-Especialización Machine Learning Engineering — DSRP 2026
+La estrategia documentada usa Pull Requests `feature/* → development → main`.
+En esta fase no se realizan operaciones Git ni se publica una release.
+
+## Conclusiones y limitaciones
+
+- XGBoost es el champion offline y usa threshold `0.2399873` seleccionado con
+  Train OOF.
+- RAG mejora varias métricas del evalset, pero aumenta costo y depende de un
+  retriever con Hit Rate@3 de 0.75.
+- Test participó en la selección del champion; no existe holdout externo
+  posterior, validación temporal ni evidencia productiva.
+- No se evaluaron sistemáticamente fairness, cumplimiento regulatorio,
+  estabilidad poblacional o desempeño online.
+- El repositorio no contiene políticas institucionales de aprobación, pricing,
+  excepciones o límites de crédito.
+
+Consulta la [Model Card](docs/model_card.md) para el alcance y las limitaciones
+detalladas.
