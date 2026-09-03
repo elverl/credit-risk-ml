@@ -1,0 +1,52 @@
+{
+  "embedding_model": "local-lsa-tfidf-svd-v1",
+  "embedding_dimension": 55,
+  "similarity": "cosine",
+  "top_k": 3,
+  "chunk_count": 56,
+  "cases": 24,
+  "hits": 18,
+  "misses": 6,
+  "hit_rate_at_3": 0.75,
+  "mrr_at_3": 0.5972222222222222,
+  "by_category": {
+    "features_target": {
+      "cases": 5,
+      "hits": 5,
+      "hit_rate_at_3": 1.0,
+      "mrr_at_3": 1.0
+    },
+    "integrated_prediction": {
+      "cases": 4,
+      "hits": 2,
+      "hit_rate_at_3": 0.5,
+      "mrr_at_3": 0.25
+    },
+    "methodology_metrics": {
+      "cases": 5,
+      "hits": 5,
+      "hit_rate_at_3": 1.0,
+      "mrr_at_3": 0.8666666666666666
+    },
+    "out_of_scope_abstention": {
+      "cases": 5,
+      "hits": 2,
+      "hit_rate_at_3": 0.4,
+      "mrr_at_3": 0.3
+    },
+    "shap_explainability": {
+      "cases": 5,
+      "hits": 4,
+      "hit_rate_at_3": 0.8,
+      "mrr_at_3": 0.5
+    }
+  },
+  "miss_ids": [
+    "sh-001",
+    "oa-001",
+    "oa-002",
+    "oa-004",
+    "ip-001",
+    "ip-004"
+  ]
+}

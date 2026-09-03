@@ -1,0 +1,20 @@
+{
+  "provider": "Groq",
+  "model": "openai/gpt-oss-20b",
+  "cases": 24,
+  "successes": 24,
+  "failures": 0,
+  "initial_validation_ids": [
+    "ft-001",
+    "mm-002",
+    "sh-001",
+    "oa-001",
+    "ip-002"
+  ],
+  "average_latency_seconds": 0.9491498958332917,
+  "token_totals": {
+    "prompt_tokens": 24699,
+    "completion_tokens": 8513,
+    "total_tokens": 33212
+  }
+}

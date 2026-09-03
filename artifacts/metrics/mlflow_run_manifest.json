@@ -1,0 +1,35 @@
+{
+  "tracking_mode": "dagshub",
+  "tracking_uri": "https://dagshub.com/elverl/credit-risk-ml.mlflow",
+  "experiment_name": "credit-risk-model-benchmark",
+  "experiment_id": "0",
+  "runs": {
+    "logistic_regression": {
+      "run_id": "2b1ce45bc2374754a12f66f946a9f4ce",
+      "model_name": "Logistic Regression",
+      "benchmark_role": "candidate"
+    },
+    "random_forest": {
+      "run_id": "9ed37c609e31445eb9497dcda0720154",
+      "model_name": "Random Forest",
+      "benchmark_role": "candidate"
+    },
+    "xgboost": {
+      "run_id": "f600a4676c57466ca28104fcda8e963b",
+      "model_name": "XGBoost",
+      "benchmark_role": "champion"
+    },
+    "lightgbm": {
+      "run_id": "ec3fc6f07ecc4adaabfbaadc2d223275",
+      "model_name": "LightGBM",
+      "benchmark_role": "candidate"
+    }
+  },
+  "champion": {
+    "model": "XGBoost",
+    "model_slug": "xgboost",
+    "run_id": "f600a4676c57466ca28104fcda8e963b",
+    "global_score": 0.9166666666666666,
+    "criterion": "equal_weight_discrimination_calibration_classification"
+  }
+}

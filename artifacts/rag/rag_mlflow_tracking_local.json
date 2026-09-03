@@ -1,0 +1,30 @@
+{
+  "tracking_mode": "local",
+  "tracking_uri": "sqlite:///artifacts/mlflow/mlflow.db",
+  "experiment_name": "credit-risk-rag-evaluation",
+  "experiment_id": "2",
+  "tracking_key": "rag_evalset_v1_final",
+  "runs": {
+    "baseline": {
+      "run_name": "baseline_gpt_oss_20b",
+      "run_id": "65b4ff9346a14debae3e6acba5504f23",
+      "status": "FINISHED",
+      "artifact_files": [
+        "evaluation/baseline_responses_v1.jsonl"
+      ]
+    },
+    "rag": {
+      "run_name": "rag_gpt_oss_20b",
+      "run_id": "d104fe13c8d04329899039c10515e739",
+      "status": "FINISHED",
+      "artifact_files": [
+        "evaluation/rag_comparison_results_v1.jsonl",
+        "evaluation/rag_comparison_summary_v1.json",
+        "evaluation/rag_responses_v1.jsonl",
+        "evaluation/retrieval_eval.json"
+      ]
+    }
+  },
+  "benchmark_run_count_before": 8,
+  "benchmark_run_count_after": 8
+}

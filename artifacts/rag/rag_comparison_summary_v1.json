@@ -1,0 +1,215 @@
+{
+  "cases": 24,
+  "global": {
+    "baseline": {
+      "factual_correctness": 0.3125,
+      "groundedness": 0.731483445700837,
+      "answer_relevance": 0.2140511347312818,
+      "abstention_accuracy": 0.4583333333333333,
+      "integrated_prediction_consistency": 0.75
+    },
+    "rag": {
+      "factual_correctness": 0.6194444444444445,
+      "groundedness": 0.6368995323882766,
+      "answer_relevance": 0.5101707329328813,
+      "abstention_accuracy": 0.9583333333333334,
+      "integrated_prediction_consistency": 0.8214285714285714
+    },
+    "delta_rag_minus_baseline": {
+      "factual_correctness": 0.30694444444444446,
+      "groundedness": -0.09458391331256044,
+      "answer_relevance": 0.2961195982015995,
+      "abstention_accuracy": 0.5,
+      "integrated_prediction_consistency": 0.0714285714285714
+    }
+  },
+  "by_category": {
+    "features_target": {
+      "cases": 5,
+      "baseline": {
+        "factual_correctness": 0.0,
+        "groundedness": 1.0,
+        "answer_relevance": 0.014285714285714285,
+        "abstention_accuracy": 0.0,
+        "integrated_prediction_consistency": null
+      },
+      "rag": {
+        "factual_correctness": 0.7666666666666666,
+        "groundedness": 0.6767031857031858,
+        "answer_relevance": 0.6708333333333333,
+        "abstention_accuracy": 1.0,
+        "integrated_prediction_consistency": null
+      },
+      "delta_rag_minus_baseline": {
+        "factual_correctness": 0.7666666666666666,
+        "groundedness": -0.32329681429681423,
+        "answer_relevance": 0.656547619047619,
+        "abstention_accuracy": 1.0,
+        "integrated_prediction_consistency": null
+      }
+    },
+    "integrated_prediction": {
+      "cases": 4,
+      "baseline": {
+        "factual_correctness": 0.625,
+        "groundedness": 0.13890067420502203,
+        "answer_relevance": 0.4335609243697479,
+        "abstention_accuracy": 1.0,
+        "integrated_prediction_consistency": 0.75
+      },
+      "rag": {
+        "factual_correctness": 0.625,
+        "groundedness": 0.4754705204452647,
+        "answer_relevance": 0.4334733893557423,
+        "abstention_accuracy": 1.0,
+        "integrated_prediction_consistency": 0.8214285714285714
+      },
+      "delta_rag_minus_baseline": {
+        "factual_correctness": 0.0,
+        "groundedness": 0.33656984624024266,
+        "answer_relevance": -8.753501400560193e-05,
+        "abstention_accuracy": 0.0,
+        "integrated_prediction_consistency": 0.0714285714285714
+      }
+    },
+    "methodology_metrics": {
+      "cases": 5,
+      "baseline": {
+        "factual_correctness": 0.0,
+        "groundedness": 1.0,
+        "answer_relevance": 0.0,
+        "abstention_accuracy": 0.0,
+        "integrated_prediction_consistency": null
+      },
+      "rag": {
+        "factual_correctness": 0.48999999999999994,
+        "groundedness": 0.581900898502369,
+        "answer_relevance": 0.5854520358868185,
+        "abstention_accuracy": 1.0,
+        "integrated_prediction_consistency": null
+      },
+      "delta_rag_minus_baseline": {
+        "factual_correctness": 0.48999999999999994,
+        "groundedness": -0.41809910149763096,
+        "answer_relevance": 0.5854520358868185,
+        "abstention_accuracy": 1.0,
+        "integrated_prediction_consistency": null
+      }
+    },
+    "out_of_scope_abstention": {
+      "cases": 5,
+      "baseline": {
+        "factual_correctness": 0.7333333333333333,
+        "groundedness": 0.8,
+        "answer_relevance": 0.4093326118326118,
+        "abstention_accuracy": 1.0,
+        "integrated_prediction_consistency": null
+      },
+      "rag": {
+        "factual_correctness": 0.7333333333333333,
+        "groundedness": 0.8625,
+        "answer_relevance": 0.4093326118326118,
+        "abstention_accuracy": 1.0,
+        "integrated_prediction_consistency": null
+      },
+      "delta_rag_minus_baseline": {
+        "factual_correctness": 0.0,
+        "groundedness": 0.0625,
+        "answer_relevance": 0.0,
+        "abstention_accuracy": 0.0,
+        "integrated_prediction_consistency": null
+      }
+    },
+    "shap_explainability": {
+      "cases": 5,
+      "baseline": {
+        "factual_correctness": 0.26666666666666666,
+        "groundedness": 0.6,
+        "answer_relevance": 0.25697838109602816,
+        "abstention_accuracy": 0.4,
+        "integrated_prediction_consistency": null
+      },
+      "rag": {
+        "factual_correctness": 0.4833333333333333,
+        "groundedness": 0.5556372549019608,
+        "answer_relevance": 0.43642282554047257,
+        "abstention_accuracy": 0.8,
+        "integrated_prediction_consistency": null
+      },
+      "delta_rag_minus_baseline": {
+        "factual_correctness": 0.21666666666666662,
+        "groundedness": -0.04436274509803917,
+        "answer_relevance": 0.1794444444444444,
+        "abstention_accuracy": 0.4,
+        "integrated_prediction_consistency": null
+      }
+    }
+  },
+  "design": {
+    "model": "openai/gpt-oss-20b",
+    "cases": 24,
+    "rag_top_k": 3,
+    "experimental_variable": "retrieved knowledge context"
+  },
+  "operational": {
+    "baseline": {
+      "cases": 24,
+      "successes": 24,
+      "failures": 0,
+      "average_latency_seconds": 0.8005260874999939,
+      "token_totals": {
+        "prompt_tokens": 11569,
+        "completion_tokens": 6783,
+        "total_tokens": 18352
+      }
+    },
+    "rag": {
+      "cases": 24,
+      "successes": 24,
+      "failures": 0,
+      "average_latency_seconds": 0.9491498958332917,
+      "token_totals": {
+        "prompt_tokens": 24699,
+        "completion_tokens": 8513,
+        "total_tokens": 33212
+      }
+    }
+  },
+  "outcomes": {
+    "improved": [
+      "ft-001",
+      "ft-002",
+      "ft-003",
+      "ft-004",
+      "ft-005",
+      "mm-001",
+      "mm-002",
+      "mm-003",
+      "mm-004",
+      "mm-005",
+      "sh-001",
+      "sh-002",
+      "sh-003",
+      "sh-004",
+      "oa-005",
+      "ip-001",
+      "ip-002",
+      "ip-003",
+      "ip-004"
+    ],
+    "tied": [
+      "sh-005",
+      "oa-001",
+      "oa-002",
+      "oa-003",
+      "oa-004"
+    ],
+    "worsened": []
+  },
+  "retrieval_effect": {
+    "hit_cases": 18,
+    "miss_cases": 6,
+    "rag_factual_on_hits": 0.6314814814814815,
+    "rag_factual_on_misses": 0.5833333333333334
+  }
+}
