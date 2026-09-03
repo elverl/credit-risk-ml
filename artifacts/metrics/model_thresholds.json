@@ -1,0 +1,44 @@
+{
+  "selection_dataset": "Train OOF",
+  "positive_class": 1,
+  "cv": {
+    "type": "StratifiedKFold",
+    "n_splits": 5,
+    "shuffle": true,
+    "random_state": 42
+  },
+  "models": {
+    "logistic_regression": {
+      "model": "Logistic Regression",
+      "method": "Youden",
+      "threshold": 0.48957360897344393,
+      "oof_tpr": 0.6518422753716872,
+      "oof_fpr": 0.38626426775004835,
+      "oof_youden_j": 0.2655780076216388
+    },
+    "random_forest": {
+      "model": "Random Forest",
+      "method": "Youden",
+      "threshold": 0.4957160121399121,
+      "oof_tpr": 0.6954104718810601,
+      "oof_fpr": 0.41005997291545754,
+      "oof_youden_j": 0.28535049896560255
+    },
+    "xgboost": {
+      "model": "XGBoost",
+      "method": "Youden",
+      "threshold": 0.2399872988462448,
+      "oof_tpr": 0.6411118293471235,
+      "oof_fpr": 0.34884890694525056,
+      "oof_youden_j": 0.29226292240187296
+    },
+    "lightgbm": {
+      "model": "LightGBM",
+      "method": "Youden",
+      "threshold": 0.21725707510461437,
+      "oof_tpr": 0.6562378797672915,
+      "oof_fpr": 0.3881988779260979,
+      "oof_youden_j": 0.2680390018411936
+    }
+  }
+}
